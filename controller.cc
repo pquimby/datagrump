@@ -11,9 +11,9 @@ double _cwnd;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ), cwnd ( 1 ), last_ack_timestamp(timestamp())
 {
-  _cwnd = 1;
+
 }
 
 /* Get current window size, in packets */
