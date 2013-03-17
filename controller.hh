@@ -9,8 +9,8 @@ class Controller
 {
 private:
   bool debug_; /* Enables debugging output */
-
-  /* Add member variables here */
+  double cwnd;
+  uint64_t last_ack_timestamp;
 
 public:
   /* Public interface for the flow controller */
