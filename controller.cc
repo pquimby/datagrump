@@ -7,20 +7,22 @@
 
 using namespace Network;
 
-double _cwnd;
-
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ), ALPHA(0)
 {
-  _cwnd = 1;
+  char* alpha_str = getenv("$ALPHA");
+  ALPHA = atoi(alpha_str);
+  if ( debug_ ) {
+    fprintf ( stderr, "alpha %d\n", ALPHA);
+  }
 }
 
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = (int)_cwnd;
+  int the_window_size = ALPHA;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -53,21 +55,6 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
-
-  double ALPHA = 2;
-  double BETA = 1.0/2.0;
-  double DROP_THRESHOLD = 150; /* in milliseconds */
-
-  uint64_t RTT = timestamp_ack_received - send_timestamp_acked;
-  bool simulate_drop = RTT > DROP_THRESHOLD;
-
-  if (simulate_drop){
-    _cwnd = BETA * _cwnd;
-  } else {
-    _cwnd += ALPHA / _cwnd;
-  }
-
-  _cwnd = std::max(1.0, _cwnd);
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
