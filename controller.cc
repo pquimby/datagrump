@@ -11,11 +11,10 @@ using namespace Network;
 Controller::Controller( const bool debug )
   : debug_( debug ), ALPHA(0)
 {
-  char* alpha_str = getenv("$ALPHA");
-  ALPHA = atoi(alpha_str);
-  if ( debug_ ) {
-    fprintf ( stderr, "alpha %d\n", ALPHA);
-  }
+  char* alpha_str = getenv("ALPHA");
+  fprintf ( stderr, "alpha_str '%s'\n", alpha_str);
+  ALPHA = (int)atof(alpha_str);
+  fprintf ( stderr, "alpha %d\n", ALPHA);
 }
 
 /* Get current window size, in packets */

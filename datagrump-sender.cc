@@ -15,6 +15,7 @@ int main( int argc, char *argv[] )
   bool debug = false;
   if ( argc == 4 && string( argv[ 3 ] ) == "debug" ) {
     debug = true;
+    fprintf( stderr, "Debug ON\n" );
   } else if ( argc == 3 ) {
     /* do nothing */
   } else {
