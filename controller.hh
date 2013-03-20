@@ -15,6 +15,9 @@ private:
   double BETA;
   double GAMMA;
   double DELTA;
+  double error_sum;
+  double last_error;
+  double last_error_time;
 
 public:
   /* Public interface for the flow controller */
