@@ -25,7 +25,6 @@ Controller::Controller( const bool debug )
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-<<<<<<< HEAD
   char* alpha_str = getenv("ALPHA");
   ALPHA = atof(alpha_str);
   char* beta_str = getenv("BETA");
@@ -35,10 +34,7 @@ unsigned int Controller::window_size( void )
   char* delta_str = getenv("DELTA");
   DELTA = atof(delta_str);
 
-  int the_window_size = 1;
-=======
   int the_window_size = (int)cwnd;
->>>>>>> p10
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
