@@ -66,15 +66,15 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
   uint64_t RTT = timestamp_ack_received - send_timestamp_acked;
 
-  error = RTT - DELTA;
+  double error = RTT - DELTA;
   error_sum += error;
 
-  p_term = error * ALPHA;
-  i_term = error_sum * BETA;
+  double p_term = error * ALPHA;
+  double i_term= error_sum * BETA;
   double delta_time = timestamp_ack_received-last_error_time;
-  d_term = (error-last_error)/(delta_time) * GAMMA;
+  double d_term = (error-last_error)/(delta_time) * GAMMA;
 
-  sum = p_term + i_term + d_term;
+  double sum = p_term + i_term + d_term;
 
   last_error = error;
   last_error_time = timestamp_ack_received;
