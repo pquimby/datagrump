@@ -31,8 +31,7 @@ unsigned int Controller::window_size( void )
     fprintf( stderr, "time_since_last_ack %lu \n", time_since_last_ack);
   }
 
-  uint64_t TIMEOUT_THRESHOLD = 1000; /* in milliseconds */
-  double BETA = 1.0/2.0;
+  uint64_t TIMEOUT_THRESHOLD = GAMMA; /* in milliseconds */
 
   if (time_since_last_ack > TIMEOUT_THRESHOLD){
     if (debug_) {
@@ -78,8 +77,6 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
-  double ALPHA = 1;
-
   last_ack_timestamp = timestamp_ack_received;
 
   if (debug_) {
@@ -102,5 +99,5 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+  return (int)GAMMA; /* timeout of one second */
 }
