@@ -7,19 +7,25 @@
 
 using namespace Network;
 
-double _cwnd;
-
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), ALPHA(0), BETA(0), GAMMA(0), DELTA(0)
+  : debug_( debug ), cwnd ( 1 ), last_ack_timestamp(timestamp()), ALPHA(0), BETA(0), GAMMA(0), DELTA(0)
 {
-  _cwnd = 1;
+  char* alpha_str = getenv("ALPHA");
+  ALPHA = atof(alpha_str);
+  char* beta_str = getenv("BETA");
+  BETA = atof(beta_str);
+  char* gamma_str = getenv("GAMMA");
+  GAMMA = atof(gamma_str);
+  char* delta_str = getenv("DELTA");
+  DELTA = atof(delta_str);
 }
 
 /* Get current window size, in packets */
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
+<<<<<<< HEAD
   char* alpha_str = getenv("ALPHA");
   ALPHA = atof(alpha_str);
   char* beta_str = getenv("BETA");
@@ -30,6 +36,9 @@ unsigned int Controller::window_size( void )
   DELTA = atof(delta_str);
 
   int the_window_size = 1;
+=======
+  int the_window_size = (int)cwnd;
+>>>>>>> p10
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
@@ -63,20 +72,16 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
                                /* when the ack was received (by sender) */
 {
 
-  double ALPHA = 2;
-  double BETA = 1.0/2.0;
-  double DROP_THRESHOLD = 150; /* in milliseconds */
-
   uint64_t RTT = timestamp_ack_received - send_timestamp_acked;
-  bool simulate_drop = RTT > DROP_THRESHOLD;
+  bool simulate_drop = RTT > GAMMA;
 
   if (simulate_drop){
-    _cwnd = BETA * _cwnd;
+    cwnd = BETA * cwnd;
   } else {
-    _cwnd += ALPHA / _cwnd;
+    cwnd += ALPHA / cwnd;
   }
 
-  _cwnd = std::max(1.0, _cwnd);
+  cwnd = std::max(1.0, cwnd);
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
