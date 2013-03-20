@@ -11,6 +11,10 @@ private:
   bool debug_; /* Enables debugging output */
   double cwnd;
   uint64_t last_ack_timestamp;
+  double ALPHA;
+  double BETA;
+  double GAMMA;
+  double DELTA;
 
 public:
   /* Public interface for the flow controller */
