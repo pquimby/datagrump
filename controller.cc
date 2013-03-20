@@ -11,7 +11,7 @@ double _cwnd;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug )
+  : debug_( debug ), ALPHA(0), BETA(0), GAMMA(0), DELTA(0)
 {
   _cwnd = 1;
 }
@@ -20,7 +20,16 @@ Controller::Controller( const bool debug )
 unsigned int Controller::window_size( void )
 {
   /* Default: fixed window size of one outstanding packet */
-  int the_window_size = (int)_cwnd;
+  char* alpha_str = getenv("ALPHA");
+  ALPHA = atof(alpha_str);
+  char* beta_str = getenv("BETA");
+  BETA = atof(beta_str);
+  char* gamma_str = getenv("GAMMA");
+  GAMMA = atof(gamma_str);
+  char* delta_str = getenv("DELTA");
+  DELTA = atof(delta_str);
+
+  int the_window_size = 1;
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",

@@ -9,7 +9,10 @@ class Controller
 {
 private:
   bool debug_; /* Enables debugging output */
-
+  double ALPHA;
+  double BETA;
+  double GAMMA;
+  double DELTA;
   /* Add member variables here */
 
 public:
