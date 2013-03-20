@@ -9,8 +9,17 @@ using namespace Network;
 
 /* Default constructor */
 Controller::Controller( const bool debug )
-  : debug_( debug ), ALPHA(0), BETA(0), GAMMA(0), DELTA(0), cwnd(1), last_ack_timestamp(timestamp())
+  : debug_( debug ), cwnd(1), last_ack_timestamp(timestamp()), ALPHA(0), BETA(0), GAMMA(0), DELTA(0)
 {
+
+  char* alpha_str = getenv("ALPHA");
+  ALPHA = atof(alpha_str);
+  char* beta_str = getenv("BETA");
+  BETA = atof(beta_str);
+  char* gamma_str = getenv("GAMMA");
+  GAMMA = atof(gamma_str);
+  char* delta_str = getenv("DELTA");
+  DELTA = atof(delta_str);
 
 }
 
@@ -37,18 +46,6 @@ unsigned int Controller::window_size( void )
 
   cwnd = std::max(1.0, cwnd);
   int the_window_size = (int)cwnd;
-=======
-  char* alpha_str = getenv("ALPHA");
-  ALPHA = atof(alpha_str);
-  char* beta_str = getenv("BETA");
-  BETA = atof(beta_str);
-  char* gamma_str = getenv("GAMMA");
-  GAMMA = atof(gamma_str);
-  char* delta_str = getenv("DELTA");
-  DELTA = atof(delta_str);
-
-  int the_window_size = 1;
->>>>>>> 465779a... Implemented reading of params from env.
 
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, return window_size = %d.\n",
