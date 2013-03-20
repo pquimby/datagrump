@@ -66,7 +66,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
   uint64_t RTT = timestamp_ack_received - send_timestamp_acked;
 
-  double error = RTT - DELTA;
+  double error = DELTA - RTT;
   error_sum += error;
 
   double p_term = error * ALPHA;
