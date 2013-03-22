@@ -77,7 +77,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   uint64_t interarrival = timestamp_ack_received - last_ack_timestamp;
   interarrival = (uint64_t)std::max( (int)interarrival, 1 );
   fprintf(stderr, "interarrival %lu\n", interarrival);
-  double interarrival_average_new = interarrival_average * (1.0-GAMMA) + interarrival * (GAMMA);
+  double interarrival_average_new = interarrival_average * (1.0-DELTA) + interarrival * (DELTA);
   fprintf(stderr, "interarrival_average_new %f\n", interarrival_average_new);
 
   if (std::abs(RTT - RTT_min) < NO_QUEUE_EPSILON) {
