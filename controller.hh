@@ -18,6 +18,7 @@ private:
   uint64_t RTT_min;
   double interarrival_average;
   uint64_t timestamp_zero;
+  uint64_t ack_count;
 
 public:
   /* Public interface for the flow controller */
