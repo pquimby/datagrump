@@ -13,7 +13,9 @@ Controller::Controller( const bool debug )
     cwnd ( 1 ), 
     last_ack_timestamp(timestamp()), 
     ALPHA(0), BETA(0), GAMMA(0), DELTA(0), 
-    RTT_min(100000)
+    RTT_min(100000),
+    interarrival_average(0),
+    timestamp_zero(timestamp())
 {
   char* alpha_str = getenv("ALPHA");
   ALPHA = atof(alpha_str);
@@ -44,10 +46,9 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 				  const uint64_t send_timestamp )
                                   /* in milliseconds */
 {
-  /* Default: take no action */
   if ( debug_ ) {
     fprintf( stderr, "At time %lu, sent packet %lu. :)\n",
-	     send_timestamp, sequence_number );
+	     send_timestamp-timestamp_zero, sequence_number );
   }
 }
 
@@ -68,28 +69,41 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   if (RTT < RTT_min) {
     RTT_min = RTT;
   }
+  fprintf(stderr, "RTT %lu RTT_min %lu\n", RTT, RTT_min);
 
   int NO_QUEUE_EPSILON = 5; /* in milliseconds */
   int DESIRED_QUEUE_SIZE = ALPHA;
 
+  uint64_t interarrival = timestamp_ack_received - last_ack_timestamp;
+  interarrival = (uint64_t)std::max( (int)interarrival, 1 );
+  fprintf(stderr, "interarrival %lu\n", interarrival);
+  double interarrival_average_new = interarrival_average * (1.0-GAMMA) + interarrival * (GAMMA);
+  fprintf(stderr, "interarrival_average_new %f\n", interarrival_average_new);
+
   if (std::abs(RTT - RTT_min) < NO_QUEUE_EPSILON) {
     fprintf( stderr, "NO QUEUE DETECTED.\n" );
-    cwnd *= 2;
+    cwnd += 1/cwnd;
   } else {
-    uint64_t interarrival = timestamp_ack_received - last_ack_timestamp;
-    interarrival = (uint64_t)std::max( (int)interarrival, 1 );
-    cwnd = RTT_min / interarrival + DESIRED_QUEUE_SIZE;
+    if (interarrival > interarrival_average) {
+      interarrival_average = interarrival;
+    } else {
+      interarrival_average = interarrival_average_new;
+    }
+    fprintf(stderr, "interarrival_average %f\n", interarrival_average);
+
+    cwnd = BETA * RTT_min / interarrival_average + DESIRED_QUEUE_SIZE;
   }
+  fprintf(stderr, "cwnd %f\n", cwnd);
 
   last_ack_timestamp = timestamp_ack_received;
 
   if ( debug_ ) {
 
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
-	     timestamp_ack_received, sequence_number_acked );
+	     timestamp_ack_received-timestamp_zero, sequence_number_acked );
 
     fprintf( stderr, " (sent %lu, received %lu by receiver's clock).\n",
-	     send_timestamp_acked, recv_timestamp_acked );
+	     send_timestamp_acked-timestamp_zero, recv_timestamp_acked );
   }
 
   cwnd = std::max(1.0, cwnd);
@@ -98,5 +112,5 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 /* How long to wait if there are no acks before sending one more packet */
 unsigned int Controller::timeout_ms( void )
 {
-  return 1000; /* timeout of one second */
+  return (int)GAMMA; /* timeout of one second */
 }

@@ -16,6 +16,8 @@ private:
   double GAMMA;
   double DELTA;
   uint64_t RTT_min;
+  double interarrival_average;
+  uint64_t timestamp_zero;
 
 public:
   /* Public interface for the flow controller */
