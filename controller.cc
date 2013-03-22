@@ -12,20 +12,14 @@ Controller::Controller( const bool debug )
   : debug_( debug ), 
     cwnd ( 5), 
     last_ack_timestamp(timestamp()), 
-    ALPHA(0), BETA(0), GAMMA(0), DELTA(0), 
     RTT_min(100),
     interarrival_average(0),
     timestamp_zero(timestamp()),
-    ack_count(0)
+  ALPHA(5.0),
+  BETA(1.25),
+  GAMMA(50),
+  DELTA(0.25)
 {
-  char* alpha_str = getenv("ALPHA");
-  ALPHA = atof(alpha_str);
-  char* beta_str = getenv("BETA");
-  BETA = atof(beta_str);
-  char* gamma_str = getenv("GAMMA");
-  GAMMA = atof(gamma_str);
-  char* delta_str = getenv("DELTA");
-  DELTA = atof(delta_str);
 }
 
 /* Get current window size, in packets */
@@ -72,17 +66,12 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   fprintf(stderr, "RTT %lu RTT_min %lu\n", RTT, RTT_min);
 
-  int NO_QUEUE_EPSILON = 10; /* in milliseconds */
+  int NO_QUEUE_EPSILON = 5; /* in milliseconds */
   int DESIRED_QUEUE_SIZE = ALPHA;
 
   double interarrival = timestamp_ack_received - last_ack_timestamp;
   if (interarrival < 0.01) {
-     ack_count++;
-     interarrival = 0.5; // / (1 + ack_count);
-  } else if (interarrival < 0 ) {
-     fprintf (stderr, "interarrival is less than 0!!. It is %f\n", interarrival);
-  } else {
-     ack_count = 0;
+     interarrival = 1.0; 
   }
   fprintf(stderr, "interarrival %f\n", interarrival);
   double interarrival_average_new = interarrival_average * (1.0-DELTA) + interarrival * (DELTA);
@@ -90,7 +79,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
   if (std::abs(RTT - RTT_min) < NO_QUEUE_EPSILON) {
     fprintf( stderr, "NO QUEUE DETECTED.\n" );
-    cwnd += 2/cwnd;
+    cwnd += 1/cwnd;
   } else {
     if (interarrival > interarrival_average) {
       interarrival_average = interarrival;
