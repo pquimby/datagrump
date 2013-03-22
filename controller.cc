@@ -13,9 +13,7 @@ Controller::Controller( const bool debug )
     cwnd ( 1 ), 
     last_ack_timestamp(timestamp()), 
     ALPHA(0), BETA(0), GAMMA(0), DELTA(0), 
-    error_sum(0), 
-    last_error(0), 
-    last_error_time(0)
+    RTT_min(100000)
 {
   char* alpha_str = getenv("ALPHA");
   ALPHA = atof(alpha_str);
@@ -65,32 +63,27 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 {
 
   uint64_t RTT = timestamp_ack_received - send_timestamp_acked;
-
-  double error = DELTA - RTT;
-  error_sum += error;
-
-  double p_term = error * ALPHA;
-  double i_term= error_sum * BETA;
-  double delta_time = timestamp_ack_received-last_error_time;
-  if (delta_time < 1) {
-    delta_time = 1;
+  
+  /* Update RTT_min */
+  if (RTT < RTT_min) {
+    RTT_min = RTT;
   }
-  double d_term = (error-last_error)/(delta_time) * GAMMA;
 
-  double sum = p_term + d_term + i_term; 
+  int NO_QUEUE_EPSILON = 5; /* in milliseconds */
+  int DESIRED_QUEUE_SIZE = ALPHA;
 
-  last_error = error;
-  last_error_time = timestamp_ack_received;
+  if (std::abs(RTT - RTT_min) < NO_QUEUE_EPSILON) {
+    fprintf( stderr, "NO QUEUE DETECTED.\n" );
+    cwnd *= 2;
+  } else {
+    uint64_t interarrival = timestamp_ack_received - last_ack_timestamp;
+    interarrival = (uint64_t)std::max( (int)interarrival, 1 );
+    cwnd = RTT_min / interarrival + DESIRED_QUEUE_SIZE;
+  }
+
+  last_ack_timestamp = timestamp_ack_received;
 
   if ( debug_ ) {
-
-    fprintf( stderr, "RTT=%lu ERROR=%03f p=%03f i=%03f d=%03f sum=%03f\n", 
-	     RTT, 
-	     error, 
-	     p_term, 
-	     i_term,
-	     d_term,
-	     sum);
 
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
 	     timestamp_ack_received, sequence_number_acked );
@@ -99,7 +92,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 	     send_timestamp_acked, recv_timestamp_acked );
   }
 
-  cwnd = std::max(1.0, sum);
+  cwnd = std::max(1.0, cwnd);
 }
 
 /* How long to wait if there are no acks before sending one more packet */
