@@ -10,7 +10,7 @@ using namespace Network;
 /* Default constructor */
 Controller::Controller( const bool debug )
   : debug_( debug ), 
-    cwnd ( 1 ), 
+    cwnd ( 10), 
     last_ack_timestamp(timestamp()), 
     ALPHA(0), BETA(0), GAMMA(0), DELTA(0), 
     RTT_min(100000),
@@ -71,7 +71,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   }
   fprintf(stderr, "RTT %lu RTT_min %lu\n", RTT, RTT_min);
 
-  int NO_QUEUE_EPSILON = 5; /* in milliseconds */
+  int NO_QUEUE_EPSILON = 10; /* in milliseconds */
   int DESIRED_QUEUE_SIZE = ALPHA;
 
   uint64_t interarrival = timestamp_ack_received - last_ack_timestamp;
@@ -82,7 +82,7 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 
   if (std::abs(RTT - RTT_min) < NO_QUEUE_EPSILON) {
     fprintf( stderr, "NO QUEUE DETECTED.\n" );
-    cwnd += 1/cwnd;
+    cwnd += 2/cwnd;
   } else {
     if (interarrival > interarrival_average) {
       interarrival_average = interarrival;
