@@ -48,7 +48,7 @@ void Controller::packet_was_sent( const uint64_t sequence_number,
 {
   /* Default: take no action */
   if ( debug_ ) {
-    fprintf( stderr, "At time %lu, sent packet %lu.\n",
+    fprintf( stderr, "At time %lu, sent packet %lu. :)\n",
 	     send_timestamp, sequence_number );
   }
 }
@@ -72,14 +72,26 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
   double p_term = error * ALPHA;
   double i_term= error_sum * BETA;
   double delta_time = timestamp_ack_received-last_error_time;
+  if (delta_time < 1) {
+    delta_time = 1;
+  }
   double d_term = (error-last_error)/(delta_time) * GAMMA;
 
-  double sum = p_term + i_term + d_term;
+  double sum = p_term + d_term + i_term; 
 
   last_error = error;
   last_error_time = timestamp_ack_received;
 
   if ( debug_ ) {
+
+    fprintf( stderr, "RTT=%lu ERROR=%03f p=%03f i=%03f d=%03f sum=%03f\n", 
+	     RTT, 
+	     error, 
+	     p_term, 
+	     i_term,
+	     d_term,
+	     sum);
+
     fprintf( stderr, "At time %lu, received ACK for packet %lu",
 	     timestamp_ack_received, sequence_number_acked );
 
